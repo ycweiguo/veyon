@@ -1,0 +1,53 @@
+name: "CI Builds (Windows)"
+
+on:
+  push:
+    branches:
+      - master  # 只在推送到 master 分支时触发
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Install dependencies
+        run: |
+          choco install -y cmake visualstudio2019community qt5
+
+      - name: Configure CMake
+        run: |
+          mkdir build
+          cd build
+          cmake -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release ..
+
+      - name: Build Veyon
+        run: |
+          cd build
+          cmake --build . --config Release
+
+      # 创建 GitHub Release
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          release_name: "Release v1.0.${{ github.run_number }}"
+          body: "This is the release for Veyon version 1.0."
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 上传构建产物到 GitHub Release
+      - name: Upload build assets to Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/Release/veyon.exe  # 上传生成的可执行文件
+          asset_name: veyon-windows-1.0.exe  # 上传时的文件名
+          asset_content_type: application/octet-stream
