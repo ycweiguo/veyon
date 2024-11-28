@@ -23,3 +23,9 @@ jobs:
       # 第二步：运行构建脚本，传入工作目录和临时目录作为参数
       - run: .ci/linux.${{matrix.dist}}/script.sh $GITHUB_WORKSPACE /tmp
 
+      # 上传生成的文件作为 Artifacts
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts
+          path: /tmp/*  # 假设你的构建产物都在 /tmp 目录下
