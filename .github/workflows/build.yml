@@ -1,17 +1,25 @@
 name: "CI Builds"
-on: push
-  branches:
-    - master
+
+on:
+  push:
+    branches:
+      - master  # 仅在推送到 master 分支时触发
+
 jobs:
   build-linux:
     strategy:
       matrix:
         dist:
-          - ubuntu.24.04
-    runs-on: ubuntu-latest
-    container: veyon/ci.linux.${{matrix.dist}}
+          - ubuntu.24.04  # 如果需要支持其他版本，可以在此添加更多选项
+    runs-on: ubuntu-latest  # 在最新的 Ubuntu 环境中运行
+    container: veyon/ci.linux.${{matrix.dist}}  # 使用指定的 Docker 容器镜像
+
     steps:
+      # 第一步：检查代码并更新子模块
       - uses: actions/checkout@v4
-        with: 
+        with:
           submodules: true
+
+      # 第二步：运行构建脚本，传入工作目录和临时目录作为参数
       - run: .ci/linux.${{matrix.dist}}/script.sh $GITHUB_WORKSPACE /tmp
+
